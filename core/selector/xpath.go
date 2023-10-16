@@ -1,8 +1,10 @@
 package selector
 
 import (
+	"fmt"
 	"github.com/antchfx/xpath"
 	"golang.org/x/net/html"
+	"log"
 	"strings"
 )
 
@@ -32,10 +34,17 @@ var _ xpath.NodeNavigator = &NodeNavigator{}
 func CreateXPathNavigator(top *html.Node) *NodeNavigator {
 	return &NodeNavigator{curr: top, root: top, attr: -1}
 }
+
+// Xpath 获取所有的tag 节点
 func (s *Node) Xpath(xpExpr string) ([]*Node, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Fatal(fmt.Sprintf("something was error:%v", err))
+		}
+	}()
 	exp, err := getQuery(xpExpr)
 	if err != nil {
-		return nil, err
+
 	}
 
 	var selectors []*Node
@@ -51,6 +60,52 @@ func (s *Node) Xpath(xpExpr string) ([]*Node, error) {
 	return selectors, nil
 }
 
-func (s *Selector) getAllNode() {
+// Text 获取h5 tag 下的文本
+func (s *Node) Text() string {
+	var output func(*strings.Builder, *html.Node)
+	output = func(b *strings.Builder, n *html.Node) {
+		switch n.Type {
+		case html.TextNode:
+			b.WriteString(n.Data)
+			return
+		case html.CommentNode:
+			return
+		}
+		for child := n.FirstChild; child != nil; child = child.NextSibling {
+			output(b, child)
+		}
+	}
+
+	var b strings.Builder
+	output(&b, s.node)
+	return strings.TrimSpace(b.String())
+}
+
+// FirstNode 获取第一个节点
+func (s *Node) FirstNode(xpExpr string) *Node {
+	nodes, err := s.Xpath(xpExpr)
+	if err != nil {
+		panic(err)
+	}
+
+	return nodes[0]
+}
+
+func (s *Node) GetAttribute(attrName string) string {
+	if s.node == nil {
+		return ""
+	}
+
+	if s.node.Type == html.ElementNode && s.node.Parent == nil && attrName == s.node.Data {
+		return InnerText(s.node)
+	}
+
+	for _, attr := range s.node.Attr {
+		if attr.Key == attrName {
+			return strings.TrimSpace(attr.Val)
+		}
+	}
+
+	return "no such attribute"
 
 }
