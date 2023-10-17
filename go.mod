@@ -6,7 +6,9 @@ require golang.org/x/net v0.17.0
 
 require (
 	github.com/antchfx/xpath v1.2.4 // indirect
+	github.com/carlmjohnson/requests v0.23.5 // indirect
 	github.com/fatih/color v1.15.0 // indirect
+	github.com/go-resty/resty/v2 v2.10.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
