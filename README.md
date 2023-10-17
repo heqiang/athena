@@ -1,3 +1,3 @@
 # athena
 
-# go path
+# go xpath

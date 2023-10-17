@@ -3,8 +3,8 @@ package selector
 import (
 	"fmt"
 	"github.com/antchfx/xpath"
+	"github.com/zeromicro/go-zero/core/logx"
 	"golang.org/x/net/html"
-	"log"
 	"strings"
 )
 
@@ -35,16 +35,12 @@ func CreateXPathNavigator(top *html.Node) *NodeNavigator {
 	return &NodeNavigator{curr: top, root: top, attr: -1}
 }
 
-// Xpath 获取所有的tag 节点
-func (s *Node) Xpath(xpExpr string) ([]*Node, error) {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Fatal(fmt.Sprintf("something was error:%v", err))
-		}
-	}()
+// Xpath get all h5 label
+func (s *Node) Xpath(xpExpr string) []*Node {
 	exp, err := getQuery(xpExpr)
 	if err != nil {
-
+		logx.Errorf("xpath error:%v", err)
+		return []*Node{}
 	}
 
 	var selectors []*Node
@@ -56,11 +52,14 @@ func (s *Node) Xpath(xpExpr string) ([]*Node, error) {
 			node: n,
 		})
 	}
+	if len(selectors) == 0 {
+		logx.Errorf(fmt.Sprintf(`current xpath:%s get empty node,please check you xpath`, xpExpr))
+	}
 
-	return selectors, nil
+	return selectors
 }
 
-// Text 获取h5 tag 下的文本
+// Text Obtain all text under the current h5 label
 func (s *Node) Text() string {
 	var output func(*strings.Builder, *html.Node)
 	output = func(b *strings.Builder, n *html.Node) {
@@ -81,16 +80,17 @@ func (s *Node) Text() string {
 	return strings.TrimSpace(b.String())
 }
 
-// FirstNode 获取第一个节点
+// FirstNode get the first node
 func (s *Node) FirstNode(xpExpr string) *Node {
-	nodes, err := s.Xpath(xpExpr)
-	if err != nil {
-		panic(err)
+	nodes := s.Xpath(xpExpr)
+	if len(nodes) == 0 {
+		return &Node{}
 	}
 
 	return nodes[0]
 }
 
+// GetAttribute get the h5 tag attribute value
 func (s *Node) GetAttribute(attrName string) string {
 	if s.node == nil {
 		return ""
